@@ -47,6 +47,14 @@ module OptimizerWrapper
       value['options']['services_vrps'] = nil
       OptimizerWrapper::REDIS.set(Resque::Plugins::Status::Hash.status_key(self.uuid), Resque::Plugins::Status::Hash.encode(value))
 
+      puts "#{self.uuid} - Starting job... " + options['checksum']
+      job_started_at = Time.now
+      Raven.tags_context(vrp_checksum: options['checksum'])
+      key_print = options['api_key'].rpartition('-')[0]
+      key_print = options['api_key'][0..3] if key_print.empty?
+      Raven.tags_context(key_print: key_print)
+      Raven.user_context(api_key: options['api_key']) # Filtered in sentry if user_context
+
       ask_restitution_csv = services_vrps.any?{ |s_v| s_v[:vrp].restitution_csv }
       result = OptimizerWrapper.define_main_process(services_vrps, self.uuid) { |wrapper, avancement, total, message, cost, time, solution|
         if [wrapper, avancement, total, message, cost, time, solution].compact.empty? # if all nil
@@ -66,6 +74,7 @@ module OptimizerWrapper
           Result.set(self.uuid, p)
         end
       }
+      puts "#{self.uuid} - Elapsed time: #{(Time.now - job_started_at).round(2)}s Vrp size: #{services_vrps.size} Key print: #{key_print}"
 
       # Add values related to the current solve status
       p = Result.get(self.uuid) || {}
@@ -76,12 +85,14 @@ module OptimizerWrapper
         p['result'].first['elapsed'] = p['graph'].last['time']
       end
       Result.set(self.uuid, p)
-    rescue Resque::Plugins::Status::Killed, JobKilledError
+    rescue Resque::Plugins::Status::Killed, JobKilledError => e
       log 'Job Killed'
       tick('Job Killed')
+      Raven.capture_exception(e, level: :info)
       nil
     rescue StandardError => e
-      log "\n\n#{e}\n\t#{e.backtrace.join("\n\t")}", level: :fatal
+      log "#{e}\n\t\t#{e.backtrace.join("\n\t\t")}", level: :fatal
+      Raven.capture_exception(e)
       raise
     end
 

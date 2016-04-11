@@ -37,6 +37,8 @@ gem 'rgeo-geojson'
 
 gem 'google-protobuf', '>=3'
 
+gem 'sentry-raven'
+
 group :development, :test do
   gem 'benchmark-ips' # to in-place benchmark of different implementations
   gem 'byebug'

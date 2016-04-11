@@ -58,6 +58,7 @@ module Api
         elsif e.is_a?(Grape::Exceptions::MethodNotAllowed)
           rack_response(format_message(response, e.backtrace), 405)
         else
+          Raven.capture_exception(e)
           rack_response(format_message(response, e.backtrace), 500)
         end
       end

@@ -542,6 +542,13 @@ module Api
               # Api key is not declared as part of the VRP and must be handled carefully and separatly from other parameters
               api_key = params[:api_key]
               checksum = Digest::MD5.hexdigest Marshal.dump(params)
+
+              Raven.tags_context(vrp_checksum: checksum)
+              key_print = api_key.rpartition('-')[0]
+              key_print = api_key[0..3] if key_print.empty?
+              Raven.tags_context(key_print: key_print)
+              Raven.user_context(api_key: api_key) # Filtered in sentry if user_context
+
               d_params = declared(params, include_missing: false)
               vrp_params = d_params[:points] ? d_params : d_params[:vrp]
               APIBase.dump_vrp_dir.write([api_key, vrp_params[:name], checksum].compact.join('_'), d_params.to_json) if OptimizerWrapper.config[:dump][:vrp]
