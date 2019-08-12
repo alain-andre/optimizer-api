@@ -40,10 +40,9 @@ Deploy to swarm:
   stage: deploy
   script:
     - apt-get update -q > /dev/null && apt-get install curl -yqq > /dev/null
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/9e123fb0-16b7-4865-98bf-69bd3a7ebc49
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/8de88a21-5e31-43db-b9a8-2180668ba14c
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/ef71189c-4426-4f41-8363-cd2d56925b46
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/163a7a5e-7311-4897-bf84-fd97a9077e69
+    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${OPTIMIZER_API_HOOK}
+    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${RESQUE_LARGE_HOOK}
+    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${RESQUE_SMALL_HOOK}
   only:
     - beta
 
@@ -69,14 +68,3 @@ Tag issues:
     name: ${CI_COMMIT_REF_NAME}
   only:
     - beta
-
-job:on-schedule:
-  image: docker:latest
-  services:
-    - docker:dind
-  stage: test
-  script:
-    - docker login -u $USER -p $PASSWORD $REGISTRY_URL
-    - DOCKER_SERVICE_NAME=optimizer_api ROUTER_API_KEY=${ROUTER_API_KEY} ROUTER_URL=${ROUTER_URL} ./ci-utils/rake_real_cases.sh
-  only:
-    - schedules
