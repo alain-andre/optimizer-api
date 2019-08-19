@@ -33,6 +33,6 @@ for item in "${list[@]}"; do
   flat_labels=$(printf "%s," "${list_labels[@]}")
 
   echo "Tagging issue #${iid} with labels $flat_labels"
-  echo "curl -sX PUT -H \"PRIVATE-TOKEN: $PRIVATE_TOKEN\" --data-urlencode \"labels=$flat_labels\" https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/issues/${iid}"
-  curl -sX PUT -H \"PRIVATE-TOKEN: $PRIVATE_TOKEN\" --data-urlencode \"labels=$flat_labels\" https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/issues/${iid}
+  echo "curl -sX PUT -H \"PRIVATE-TOKEN: $PRIVATE_TOKEN\" --data-urlencode \"labels=$flat_labels\" https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/issues/${iid} > /dev/null"
+  curl -sX PUT -H "PRIVATE-TOKEN: $PRIVATE_TOKEN" --data-urlencode "labels=$flat_labels" https://gitlab.com/api/v4/projects/${CI_PROJECT_ID}/issues/${iid} > /dev/null
 done

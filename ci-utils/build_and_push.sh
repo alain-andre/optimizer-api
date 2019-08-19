@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 if [[ $CI_COMMIT_REF_NAME == "master" ]]; then
   REF_NAME=ce
-  OPTIMIZER_ORTOOLS_VERSION=master
 else
   REF_NAME=${CI_COMMIT_REF_NAME}
-  OPTIMIZER_ORTOOLS_VERSION=dev
 fi
+
+OPTIMIZER_ORTOOLS_VERSION=latest
 NAMESPACE=$USER-${REF_NAME}
 
 docker pull $REGISTRY_URL/$USER-${REF_NAME}/$CI_PROJECT_NAME:latest || true
@@ -45,7 +45,7 @@ fi
 
 set -e
 IMAGE_NAME=$REGISTRY_URL/$NAMESPACE/$PROJECT_NAME
-docker build --cache-from $IMAGE_NAME:latest -f ${DOCKER_FILE} -t $IMAGE_NAME:latest --build-arg ORTOOLS_VERSION=${ORTOOLS_VERSION} --build-arg VROOM_VERSION=${VROOM_VERSION} --build-arg OPTIMIZER_ORTOOLS_VERSION=${OPTIMIZER_ORTOOLS_VERSION} --build-arg REGISTRY=${REGISTRY_URL}/ .
+docker build --cache-from $IMAGE_NAME:latest -f ${DOCKER_FILE} -t $IMAGE_NAME:latest --build-arg ORTOOLS_VERSION=${ORTOOLS_VERSION} --build-arg VROOM_VERSION=${VROOM_VERSION} --build-arg OPTIMIZER_ORTOOLS_VERSION=${OPTIMIZER_ORTOOLS_VERSION} --build-arg REGISTRY=${REGISTRY_URL}/ --build-arg BRANCH=${REF_NAME} .
 docker push $IMAGE_NAME:latest
 
 if [[ $REF_NAME != "ce" ]]; then
