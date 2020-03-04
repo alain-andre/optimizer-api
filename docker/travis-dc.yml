@@ -1,7 +1,7 @@
 version: '3.3'
 services:
   api:
-    image: registry.mapotempo.com/mapotempo-ce/optimizer-api:latest
+    image: registry.test.com/mapotempo/optimizer-api:latest
     environment:
       REDIS_RESQUE_HOST: redis
       REDIS_HOST: redis-cache
@@ -12,7 +12,7 @@ services:
       - resque
 
   resque-default:
-    image: registry.mapotempo.com/mapotempo-ce/optimizer-api:latest
+    image: registry.test.com/mapotempo/optimizer-api:latest
     working_dir: /srv/app
     hostname: resque-default
     environment:

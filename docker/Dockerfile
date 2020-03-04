@@ -31,7 +31,7 @@ RUN cd /srv/app && \
 # Final image
 FROM ruby:2.3-slim
 
-LABEL maintainer="Mapotempo <contact@mapotempo.com>"
+LABEL maintainer="Mapotempo <tech@mapotempo.com>"
 
 ENV APP_ENV production
 ENV REDIS_HOST redis-cache
