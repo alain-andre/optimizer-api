@@ -544,15 +544,18 @@ module Api
               d_params = declared(params, include_missing: false)
               vrp_params = d_params[:points] ? d_params : d_params[:vrp]
               APIBase.dump_vrp_dir.write([api_key, vrp_params[:name], checksum].compact.join('_'), d_params.to_json) if OptimizerWrapper.config[:dump][:vrp]
+              count :submit_vrp, true, params[:vrp][:points].count
 
-              APIBase.services(api_key)[:params_limit].merge(OptimizerWrapper.access[api_key][:params_limit] || {}).each{ |key, value|
+              APIBase.profile(api_key)[:params_limit].merge(OptimizerWrapper.access[api_key][:params_limit] || {}).each{ |key, value|
                 next if vrp_params[key].nil? || value.nil? || vrp_params[key].size <= value
 
                 error!({
                   status: 'Exceeded params limit',
-                  message: "Exceeded #{key} limit authorized for your account: #{value}. Please contact support or sales to increase limits."
-                }, 400)
+                  message: "Exceeded \"#{key}\" limit authorized for your account: #{value}. Please contact support or sales to increase limits."
+                }, 413)
               }
+
+              APIBase.dump_vrp_dir.write([api_key, vrp_params[:name], checksum].compact.join('_'), { vrp: vrp_params }.to_json) if OptimizerWrapper.config[:dump][:vrp]
 
               vrp = ::Models::Vrp.create(vrp_params)
               if !vrp.valid? || vrp_params.nil? || vrp_params.keys.empty?
@@ -560,13 +563,18 @@ module Api
                 vrp.errors.add(:empty_vrp, message: 'VRP structure is empty') if vrp_params&.keys&.empty?
                 error!({ status: 'Model Validation Error', message: vrp.errors }, 400)
               else
-                ret = OptimizerWrapper.wrapper_vrp(api_key, APIBase.services(api_key), vrp, checksum)
+                ret = OptimizerWrapper.wrapper_vrp(api_key, APIBase.profile(api_key), vrp, checksum)
+
                 if ret.is_a?(String)
                   # present result, with: VrpResult
                   status 201
+                  count_incr :submit_vrp, transactions: vrp.transactions
+
                   present({ job: { id: ret, status: :queued }}, with: Grape::Presenters::Presenter)
                 elsif ret.is_a?(Hash)
                   status 200
+                  count_incr :submit_vrp, transactions: vrp.transactions
+
                   if vrp.restitution_csv
                     present(OptimizerWrapper.build_csv(ret.deep_stringify_keys), type: CSV)
                   else
@@ -618,7 +626,6 @@ module Api
             end
 
             status 200
-
             if output_format == :csv && (job.nil? || job.completed?) # At this step, if the job is nil then it has already been retrieved into the result store
               present(OptimizerWrapper.build_csv(solution['result']), type: CSV)
             else
@@ -661,7 +668,8 @@ module Api
 
             if !job || job.killed? || Resque::Plugins::Status::Hash.should_kill?(id) || job['options']['api_key'] != params[:api_key]
               status 404
-              error!({ status: 'Not Found', message: "Job with id='#{id}' not found" }, 404)
+
+              error!({status: 'Not Found', message: "Job with id='#{id}' not found"}, 404)
             else
               OptimizerWrapper.job_kill(params[:api_key], id)
               job.status = 'killed'
@@ -690,6 +698,7 @@ module Api
                   }
                 }, with: Grape::Presenters::Presenter)
               end
+
               OptimizerWrapper.job_remove(params[:api_key], id)
             end
           end
