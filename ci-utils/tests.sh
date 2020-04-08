@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 TEST_ENV=''
 TEST_LOG_LEVEL='info'
 TEST_COVERAGE='false'

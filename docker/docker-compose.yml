@@ -19,36 +19,21 @@ services:
       - redis_cache
 
   api:
-    image: registry.mapotempo.com/mapotempo-${EDT:-beta}/optimizer-api:latest
-    configs:
-      - source: production
-        target: /srv/app/config/environments/production.rb
-    deploy:
-      restart_policy:
-        condition: any
-    volumes:
-      - ../config/custom:/srv/app/config/custom/
+    image: registry.test.com/mapotempo/optimizer-api:latest
+    hostname: travis-api
     environment:
       REDIS_RESQUE_HOST: redis
       REDIS_HOST: redis-cache
-      APP_ENV: production
+      APP_ENV: test
     networks:
       - base
       - redis_cache
       - resque
 
   resque-default:
-    image: registry.mapotempo.com/mapotempo-${EDT:-beta}/optimizer-api:latest
-    configs:
-      - source: production
-        target: /srv/app/config/environments/production.rb
-    deploy:
-      restart_policy:
-        condition: any
+    image: registry.test.com/mapotempo/optimizer-api:latest
     working_dir: /srv/app
-    hostname: resque-default
-    volumes:
-      - ../config/custom:/srv/app/config/custom/
+    hostname: travis-resque-default
     environment:
       APP_ENV: test
       COUNT: 5
@@ -66,5 +51,3 @@ networks:
   resque:
   redis_cache:
   base:
-    external: ${EXTERNAL_NETWORK:-false}
-    driver: overlay
