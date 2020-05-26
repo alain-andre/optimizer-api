@@ -36,30 +36,6 @@ Build & push Image:
     - dev
     - master
 
-Deploy to swarm for beta:
-  image: debian:latest
-  stage: deploy
-  script:
-    - apt-get update -q > /dev/null && apt-get install curl -yqq > /dev/null
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_BETA_API}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_BETA_LARGE}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_BETA_SMALL}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_BETA_TEST}
-  only:
-    - beta
-
-Deploy to swarm for alpha:
-  image: debian:latest
-  stage: deploy
-  script:
-    - apt-get update -q > /dev/null && apt-get install curl -yqq > /dev/null
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_ALPHA_API}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_ALPHA_LARGE}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_ALPHA_SMALL}
-    - curl -X POST https://portainer-beta.mapotempo.com/api/webhooks/${HOOK_ALPHA_TEST}
-  only:
-    - alpha
-
 Test rake:
   image: docker:latest
   services:
