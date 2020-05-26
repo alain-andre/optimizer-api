@@ -1,7 +1,7 @@
 stages:
+  - test
   - docker
   - deploy
-  - test
   - tag
 
 Build & push Image:
@@ -17,6 +17,8 @@ Build & push Image:
     DOCKER_DRIVER: overlay2
     DOCKER_HOST: tcp://docker:2375
     REGISTRY_URL: registry.mapotempo.com
+    VROOM_VERSION: v1.2.0
+    OPTIMIZER_ORTOOLS_VERSION: v1.2.0
   script:
     - apk update > /dev/null && apk add git bash jq curl > /dev/null
     - docker login -u $USER -p $PASSWORD $REGISTRY_URL
@@ -26,27 +28,42 @@ Build & push Image:
         PORTUS_TOKEN=${PORTUS_TOKEN} \
         PROJECT_NAME=${CI_PROJECT_NAME} \
         REGISTRY_URL=${REGISTRY_URL} \
-        TEST_GITHUB=1 \
+        VROOM_VERSION=${VROOM_VERSION}\
+        OPTIMIZER_ORTOOLS_VERSION=${OPTIMIZER_ORTOOLS_VERSION}\
         USER=$USER \
         ./ci-utils/build_and_push.sh
   only:
-    - alpha
+    - prod-initial
     - beta
     - prod
     - dev
     - master
 
-Test rake:
-  image: docker:latest
-  services:
-    - docker:dind
-  stage: test
+Deploy to swarm for prod-initial:
+  image: debian:latest
+  stage: deploy
   script:
-    - docker login -u $USER -p $PASSWORD $REGISTRY_URL
-    - DOCKER_SERVICE_NAME=optimizer_api ROUTER_API_KEY=${ROUTER_API_KEY} ROUTER_URL=${ROUTER_URL} ./ci-utils/rake_test.sh
+    - apt-get update -q > /dev/null && apt-get install curl -yqq > /dev/null
+    - ./ci-utils/deploy.sh
   only:
-    - dev
-    - master
+    - prod-initial
+
+# Test:
+#   image: docker:latest
+#   services:
+#     - docker:dind
+#   stage: test
+#   variables:
+#     ROUTER_API_KEY: ${ROUTER_API_KEY}
+#     ROUTER_URL: ${ROUTER_URL}
+#   script:
+#     - docker build --build-arg VROOM_VERSION=${VROOM_VERSION:-v1.2.0} --build-arg OPTIMIZER_ORTOOLS_VERSION=${OPTIMIZER_ORTOOLS_VERSION:-v1.2.0} -f docker/Dockerfile -t registry.test.com/mapotempo/optimizer-api:latest .
+#     - docker swarm init
+#     - mkdir -p ./redis
+#     - docker stack deploy -c ./docker/docker-compose.yml optimizer
+#     - /bin/sh ./ci-utils/tests.sh basis
+#   only:
+#     - prod-initial
 
 Tag issues:
   image: debian:latest

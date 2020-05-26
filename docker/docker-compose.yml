@@ -20,6 +20,8 @@ services:
 
   api:
     image: registry.test.com/mapotempo/optimizer-api:latest
+    volumes:
+      - ./raven.rb:/srv/app/config/initializers/raven.rb
     hostname: travis-api
     environment:
       REDIS_RESQUE_HOST: redis
@@ -32,6 +34,8 @@ services:
 
   resque-default:
     image: registry.test.com/mapotempo/optimizer-api:latest
+    volumes:
+      - ./raven.rb:/srv/app/config/initializers/raven.rb
     working_dir: /srv/app
     hostname: travis-resque-default
     environment:
