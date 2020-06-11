@@ -13,7 +13,7 @@ FROM ${REGISTRY}mapotempo/vroom:${VROOM_VERSION} as vroom
 RUN echo ${VROOM_VERSION}
 
 # Rake
-FROM ruby:2.3.3 as rake
+FROM ruby:2.5.0 as rake
 
 ENV LANG C.UTF-8
 
@@ -25,8 +25,9 @@ WORKDIR /srv/app
 RUN gem install bundler --version 1.17.3
 RUN bundle --version
 RUN bundle check || bundle install --full-index --without development -j $(nproc)
+
 # Final image
-FROM ruby:2.3.3
+FROM phusion/passenger-ruby25
 
 LABEL maintainer="Mapotempo <contact@mapotempo.com>"
 
