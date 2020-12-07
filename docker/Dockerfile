@@ -18,7 +18,7 @@ FROM phusion/passenger-ruby25 as rake
 ENV LANG C.UTF-8
 
 RUN apt-get update > /dev/null && \
-  apt-get install -y git build-essential libgeos-dev libgeos-3.6.2 libicu-dev zlib1g-dev zlib1g nano > /dev/null
+  apt-get install -y git build-essential libgeos-dev libgeos-3.8.0 libicu-dev zlib1g-dev zlib1g nano > /dev/null
 
 COPY . /srv/app
 WORKDIR /srv/app
