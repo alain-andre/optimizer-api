@@ -437,6 +437,7 @@ class Api::V01::VrpTest < Api::V01::RequestHelper
     assert_equal 3, vrp.vehicles.size
   end
 
+  focus
   def test_count_optimizations
     TestHelper.solve_asynchronously do
       @job_id = submit_vrp api_key: 'demo', vrp: VRP.toy # counter is now 1 for submit_vrp !
@@ -448,6 +449,8 @@ class Api::V01::VrpTest < Api::V01::RequestHelper
       { method: 'get', uri: 'jobs', operation: :get_job_list, options: {}},
       { method: 'delete', uri: "jobs/#{@job_id}.json", operation: :delete_job, options: {}} # delete must be the last one !
     ].each do |obj|
+      transactions = VRP.toy[:vehicles].count * VRP.toy[:points].count
+
       (1..2).each do |cpt|
         send(obj[:method], "/0.1/vrp/#{obj[:uri]}", { api_key: 'demo' }.merge(obj[:options]))
 
@@ -457,12 +460,12 @@ class Api::V01::VrpTest < Api::V01::RequestHelper
         keys.each{ |key|
           puts obj[:operation]
           case obj[:operation]
-          when :submit_vrp # submit_vrp to get @job_id already increased hits & transactions
-            assert_equal({ 'hits' => (cpt + 1).to_s, 'transactions' => (cpt + 1).to_s }, OptimizerWrapper.config[:redis_count].hgetall(key))
-          when :delete_job # first delete increase transactions, but seonde cannot delete, so only increase hits
-            assert_equal({ 'hits' => cpt.to_s, 'transactions' => 1.to_s }, OptimizerWrapper.config[:redis_count].hgetall(key))
-          else
-            assert_equal({ 'hits' => cpt.to_s, 'transactions' => cpt.to_s }, OptimizerWrapper.config[:redis_count].hgetall(key))
+          when :submit_vrp
+            assert_equal({ 'hits' => (cpt + 1).to_s, 'transactions' => (transactions * cpt).to_s }, OptimizerWrapper.config[:redis_count].hgetall(key))
+          when :get_job
+            assert_equal({ 'hits' => 0, 'transactions' => 0 }, OptimizerWrapper.config[:redis_count].hgetall(key))
+          when :delete_job
+            assert_equal({ 'hits' => 0, 'transactions' => 0 }, OptimizerWrapper.config[:redis_count].hgetall(key))
           end
         }
       end

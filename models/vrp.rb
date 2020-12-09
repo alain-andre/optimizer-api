@@ -546,7 +546,7 @@ module Models
     end
 
     def transactions
-      self[:vehicles].count * self[:points].count
+      self.vehicles.count * self.points.count
     end
   end
 end
