@@ -544,7 +544,6 @@ module Api
               d_params = declared(params, include_missing: false)
               vrp_params = d_params[:points] ? d_params : d_params[:vrp]
               APIBase.dump_vrp_dir.write([api_key, vrp_params[:name], checksum].compact.join('_'), d_params.to_json) if OptimizerWrapper.config[:dump][:vrp]
-              count :submit_vrp, true, vrp.transactions
 
               APIBase.profile(api_key)[:params_limit].merge(OptimizerWrapper.access[api_key][:params_limit] || {}).each{ |key, value|
                 next if vrp_params[key].nil? || value.nil? || vrp_params[key].size <= value
@@ -559,6 +558,7 @@ module Api
               APIBase.dump_vrp_dir.write([api_key, vrp_params[:name], checksum].compact.join('_'), { vrp: vrp_params }.to_json) if OptimizerWrapper.config[:dump][:vrp]
 
               vrp = ::Models::Vrp.create(vrp_params)
+              count :submit_vrp, true, vrp.transactions
               if !vrp.valid? || vrp_params.nil? || vrp_params.keys.empty?
                 vrp.errors.add(:empty_file, message: 'JSON file is empty') if vrp_params.nil?
                 vrp.errors.add(:empty_vrp, message: 'VRP structure is empty') if vrp_params&.keys&.empty?
