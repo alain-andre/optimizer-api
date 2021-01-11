@@ -9,15 +9,16 @@ gem 'rack-cors'
 gem 'rake'
 gem 'thin'
 
-gem 'grape', '<0.19.0' # TODO: Grape 1.2.4 reduces performances
+gem 'grape'
 gem 'grape-entity'
-gem 'grape-swagger', '<0.26.0' # TODO: Waiting Grape 1+
-gem 'grape-swagger-entity', '<0.1.6' # TODO: Waiting Grape 1+
+gem 'grape-swagger'
+gem 'grape-swagger-entity'
 gem 'grape_logging'
 
 gem 'actionpack'
 gem 'active_hash', github: 'Mapotempo/active_hash'
 gem 'activemodel'
+gem 'hashie'
 
 gem 'charlock_holmes'
 gem 'http_accept_language'
@@ -44,7 +45,7 @@ group :development, :test do
   gem 'byebug'
 
   # For linting and offline code analysis
-  gem 'rubocop'
+  gem 'rubocop', '~> 0.81.0'
   gem 'rubocop-minitest', require: false
   gem 'rubocop-performance', require: false
   gem 'solargraph'
