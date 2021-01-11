@@ -18,7 +18,7 @@ Build & push Image:
     DOCKER_HOST: tcp://docker:2375
     REGISTRY_URL: registry.mapotempo.com
     VROOM_VERSION: v1.2.0
-    OPTIMIZER_ORTOOLS_VERSION: v1.2.0
+    OPTIMIZER_ORTOOLS_VERSION: v1.4.0
   script:
     - apk update > /dev/null && apk add git bash jq curl > /dev/null
     - docker login -u $USER -p $PASSWORD $REGISTRY_URL
