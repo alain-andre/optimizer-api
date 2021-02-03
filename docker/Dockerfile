@@ -37,5 +37,10 @@ RUN apt-get remove -y git build-essential && \
 
 WORKDIR /srv/app
 
-EXPOSE 1791
-CMD ["bundle", "exec", "rackup"]
+# Enable Nginx and Passenger
+RUN rm -f /etc/service/nginx/down
+
+# Enable app
+ADD docker/env.d/* /etc/nginx/main.d/
+ADD docker/snippets/* /etc/nginx/snippets/
+ADD docker/vhost.conf /etc/nginx/sites-enabled/default
