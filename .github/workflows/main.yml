@@ -2,6 +2,8 @@ name: Docker Image CI
 
 on:
   push:
+    tags-ignore:
+      - '*.*'
   pull_request:
     types: [opened, synchronize, reopened]
 
@@ -28,6 +30,9 @@ jobs:
           key: ${{ runner.os }}
       - name: Build image
         run: ./.github/actions/build.sh
+        shell: bash
+      - name: Initialize sarm
+        run: ./.github/actions/initialize.sh
         shell: bash
       - name: Starting tests
         run: ./.github/actions/tests.sh
