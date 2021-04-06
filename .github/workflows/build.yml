@@ -1,0 +1,32 @@
+name: Docker Build Image
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  OPTIMIZER_ORTOOLS_VERSION: ${{ secrets.OPTIMIZER_ORTOOLS_VERSION }}
+  REGISTRY: ${{ secrets.REGISTRY }}
+  VROOM_VERSION: ${{ secrets.VROOM_VERSION }}
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v1
+      - name: Cache
+        id: cache
+        uses: actions/cache@v2
+        with:
+          path: vendor/bundle
+          key: ${{ runner.os }}
+      - name: Build image
+        run: ./.github/actions/build.sh
+        shell: bash
+      - name: Push image
+        run: |
+          docker login -u ${REGISTRY_USER} -p ${REGISTRY_PWD} ${REGISTRY}
+          docker tag registry.test.com/mapotempo/optimizer-api:latest ${REGISTRY}/mapotempo/optimizer-api:${GITHUB_REF/refs\/tags\//}
+          docker push ${REGISTRY}/mapotempo/optimizer-api:${GITHUB_REF/refs\/tags\//}
